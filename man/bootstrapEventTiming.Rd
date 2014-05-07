@@ -8,29 +8,24 @@ Bootstrap the results of eventTiming
 Create bootstrap estimates of pi base on the results of a call to eventTiming.
 }
 \usage{
-bootstrapEventTiming(B,  type = c("parametric", "nonparametric"),call, pi, x, m)
+ bootstrapEventTiming(eventOrdering, B, type = c("parametric",
+                 "nonparametric"), pi, x, m ,call)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
+	\item{eventOrdering}{output from eventTiming}
   \item{B}{ number of bootstrap samples to take
-%%     ~~Describe \code{B} here~~
 }
   \item{type}{type of bootstrap confidence interval to calculate, one of ``parametric", ``nonparametric"
-%%     ~~Describe \code{type} here~~
-}
-  \item{call}{
-list with elements (given as `call' in the output of eventTiming): ``alleleSet", ``history", ``totalCopy", ``type", ``exactAllele", ``normCont", ``coverageCutoff", ``minMutations", ``init", ``maxiter", ``tol"
 }
   \item{pi}{
-the estimate of $pi$ from which to create bootstrap samples (if type="parametric" )
+the estimate of $pi$ from which to create bootstrap samples (if type="parametric". If not given, will use output from eventOrdering)
 }
-  \item{x}{ vector. the number of reads/fragments containing the variant; not needed if ``inputData'' included as part of call
-%%     ~~Describe \code{x} here~~
+  \item{x}{ vector. the number of reads/fragments containing the variant; not needed if output from eventOrdering given.
 }
-  \item{m}{ vector. the number of reads/fragments covering the location with the variant (the coverage)
-%%     ~~Describe \code{m} here~~
+  \item{m}{ vector. the number of reads/fragments covering the location with the variant (the coverage); not needed if output from eventOrdering given.
 }
-
+	\item{call}{information about the call given to original eventTiming command. Only needed if eventOrdering object not given (mainly used for internal calls within eventTiming function)}
 }
 \value{
 Matrix of dimension (B,length(pi)) with the estimate of pi for each of the bootstrap samples
@@ -43,6 +38,7 @@ data(mutData)
 ACNLOH<-matrix(c(1,3,1,0),ncol=2,nrow=2,byrow=TRUE)
 onlyMuts<-subset(mutData,is.na(rsID) & position <= 1.8E7)
 onlyMuts$t_depth<-onlyMuts$t_ref_count+onlyMuts$t_alt_count
-x<-eventTiming(x=onlyMuts$t_alt_count,m=onlyMuts$t_depth,history=ACNLOH,totalCopy=2,type="CNLOH",normCont=0.22)
-piBoot<-bootstrapEventTiming(B=100,pi=x$pi,call=x$call,x=onlyMuts$t_alt_count,m=onlyMuts$t_depth,type="parametric")
+x<-eventTiming(x=onlyMuts$t_alt_count,m=onlyMuts$t_depth,
+    history=ACNLOH,totalCopy=2,type="CNLOH",normCont=0.22,returnAssignments=TRUE)
+piBoot<-bootstrapEventTiming(x,B=100,type="parametric")
 }

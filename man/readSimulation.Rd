@@ -9,12 +9,13 @@ Simulate reads based on an event matrix
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-readSimulation(B, alleleSet, q, totalCopy, mutRate = NULL, seqError = 0, fixedN = FALSE, normCont = 0, aveReadCoverage = 30, countDistribution = NULL)
+readSimulation(B, alleleSet, q, totalCopy, mutRate = NULL, seqError = 0, 
+	fixedN = FALSE, normCont = 0, aveReadCoverage = 30, countDistribution = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{B}{
-the length of the region in base pairs
+the number of simulated data sets to make
 %%     ~~Describe \code{B} here~~
 }
   \item{alleleSet}{
@@ -71,5 +72,7 @@ Elizabeth Purdom}
 	piVal<-c(.1,.9)
 	qvec<-prop.table(Amat\%*\%piVal)
 
-	sims<-readSimulation(10, alleleSet=allAF(totalCopy=2)[[1]], q=qvec, totalCopy=2, mutRate = 100, seqError = 0.1, fixedN = TRUE, normCont = 0.1, aveReadCoverage = 30)
+	sims<-readSimulation(10, alleleSet=allAF(totalCopy=2)[[1]], q=qvec, 
+	totalCopy=2, mutRate = 100, seqError = 0.1, fixedN = TRUE, 
+	normCont = 0.1, aveReadCoverage = 30)
 }

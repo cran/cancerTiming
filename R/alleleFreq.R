@@ -61,11 +61,15 @@ allAF<-function(totalCopy,normCont=0,totalCopyNormal=2,type=c("mutation","SNPHet
 
 mleAF<-function(x,m,totalCopy,maxCopy=totalCopy,seqError=0,normCont=0){
 	if(length(x)!=length(m)) stop("x and m must be the same length")
-	multiSample<-if(length(normCont)>1 | length(seqError)>1 | length(totalCopy)>1 | length(maxCopy)>1) TRUE else FALSE
-	if(length(normCont)>1){if(length(x)!=length(normCont)) stop("x/m and normCont should be same length")} else normCont<-rep(normCont,length(x))
-	if(length(seqError)>1){if(length(x)!=length(seqError)) stop("x/m and seqError should be same length")} else seqError<-rep(seqError,length(x))		
-	if(length(totalCopy)>1){if(length(x)!=length(totalCopy)) stop("x/m and totalCopy should be same length")} else totalCopy<-rep(totalCopy,length(x))
-	if(length(maxCopy)>1){if(length(x)!=length(maxCopy)) stop("x/m and maxCopy should be same length")} else maxCopy<-rep(maxCopy,length(x))		
+	if(length(normCont)>1 | length(seqError)>1 | length(totalCopy)>1 | length(maxCopy)>1){ 
+		multiSample<-TRUE 	
+		#note: this replicates everything, so a vector of same length. Messes up where not need to be a vector
+		if(length(normCont)>1){if(length(x)!=length(normCont)) stop("x/m and normCont should be same length")} else normCont<-rep(normCont,length(x))
+		if(length(seqError)>1){if(length(x)!=length(seqError)) stop("x/m and seqError should be same length")} else seqError<-rep(seqError,length(x))		
+		if(length(totalCopy)>1){if(length(x)!=length(totalCopy)) stop("x/m and totalCopy should be same length")} else totalCopy<-rep(totalCopy,length(x))
+		if(length(maxCopy)>1){if(length(x)!=length(maxCopy)) stop("x/m and maxCopy should be same length")} else maxCopy<-rep(maxCopy,length(x))		
+	}
+	else{multiSample<-FALSE}
 
 	
 	if(multiSample){
@@ -84,7 +88,7 @@ mleAF<-function(x,m,totalCopy,maxCopy=totalCopy,seqError=0,normCont=0){
 		colnames(out)<-r		
 		assign<-r[apply(out,1,which.max)]
 		assignAlleles<-factor(alleles[apply(out,1,which.max)],levels=alleles)
-		afdf<-data.frame(tumorAF=r/totalCopy,AF=alleles,frequency=table(assignAlleles))
+		afdf<-data.frame(tumorAF=r/totalCopy,AF=alleles,table(assignAlleles))
 		row.names(afdf)<-NULL
 		afdf<-afdf[,-3]
 		

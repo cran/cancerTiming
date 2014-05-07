@@ -1,13 +1,23 @@
-# num_iter is the number of bootstrap observations you would like to generate
-# call is the list "call" returned by EMLOH, or a list with the names NX, pe, pl, initial, maxiter, and tol -- and their respective values
+# B is the number of bootstrap observations you would like to generate
+# eventOrdering is the list returned by eventTiming
+#optional:
 # pi is the estimate of pi you want to use for bootstrapping
-#note that assumes that the $alleleSet from 'call' is the right alleles (i.e. after seqError and norm. Cont. included)
-bootstrapEventTiming <- function(B,  type=c("parametric","nonparametric"), call, pi, x, m){
+# x, m the data to bootstrap
+# note that assumes that the $alleleSet from '$call' is the right alleles (i.e. after seqError and norm. Cont. included)
+bootstrapEventTiming <- function(eventOrdering, B,  type=c("parametric","nonparametric"),  pi, x, m,call){
 	type<-match.arg(type)
 	if(missing(x) | missing(m)){
-		if(!"inputData"%in% names(call)) stop("inputData must be one of the named elements of 'call' if 'x' and 'm' are not supplied.")
-		x<-call$inputData$x
-		m<-call$inputData$m
+		if(!"perLocationProb"%in% names(eventOrdering)) stop("perLocationProb must be one of the named elements of 'eventOrdering' if 'x' and 'm' are not supplied.")
+		x<-eventOrdering$perLocationProb$x
+		m<-eventOrdering$perLocationProb$m
+	}
+	if(missing(pi)){
+		if(!"pi"%in%names(eventOrdering) | (any(is.na(eventOrdering$pi)) & type=="parametric")) stop("invalid values of 'pi' in 'eventOrdering' object")
+		pi<-eventOrdering$pi
+	}
+	if(missing(call)){
+		if(!"call"%in%names(eventOrdering)) stop("invalid values of 'call' in 'eventOrdering' object")
+		call<-eventOrdering$call
 	}
 	N<-length(m)
 	eventFunctionNames<-c("history","totalCopy" ,"method","seqError","type","normCont","coverageCutoff","minMutations","init","maxiter","tol")
@@ -80,6 +90,7 @@ bootstrapEventTiming <- function(B,  type=c("parametric","nonparametric"), call,
 
 readSimulation<-function(B,alleleSet, q, totalCopy,mutRate=NULL,seqError=0,fixedN=FALSE,normCont=0, aveReadCoverage=30,countDistribution=NULL){
 	#from mutation rate, how many actual mutations
+	if(fixedN & is.null(mutRate)) stop("must give mutRate if fixedN value")
 	if(length(mutRate)!=1) stop("mutRate must be a single value")
 	if(!fixedN) nMut<-rpois(B,mutRate)  #vector of length B
 	else nMut<-mutRate #single value
@@ -90,7 +101,7 @@ readSimulation<-function(B,alleleSet, q, totalCopy,mutRate=NULL,seqError=0,fixed
 	singleCall<-function(nMut,B){
 		if(nMut>0){
 			if(is.null(countDistribution)){
-				m<-matrix(rpois(nMut*B,aveReadCoverage),nrow=nMut,ncol=B)
+				m<-matrix(rpois(nMut*B,aveReadCoverage),nrow=nMut,ncol=B) #actual read coverage per mutation
 			}
 			else{ #otherwise, use empirical distribution given by countDistribution (i.e. ignore aveReadCoverage)
 				aveReadCoverage<-round(mean(countDistribution),2) #so label is still relevant

@@ -8,7 +8,8 @@ Basic function for plotting the ratio of tumor to normal coverage
 Basic function for plotting the ratio of tumor to normal coverage, and calculating the average over segments. A simple tool for assessing copy number breaks.
 }
 \usage{
-plotSeqCount(position, t_count, n_count, normFac=1, segs, segColors = palette(), ...)
+plotSeqCount(position, t_count, n_count, ylim=NULL, normFac=1, 
+	segs, segColors = palette(), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,6 +21,9 @@ vector of number of reads overlapping position in tumor
 }
   \item{n_count}{
 vector of number of reads overlapping position in normal}
+\item{ylim}{
+	set the limits of y axis. If NULL, default values found.
+}
   \item{normFac}{
 a normalizing factor to correct for
 }

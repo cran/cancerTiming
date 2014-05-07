@@ -9,7 +9,8 @@ Plot different values per segment against each other (e.g. minor and major allel
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-plotCopies(x, y, nX, nY, xleg, yleg, ...)
+plotCopies	(x, y, nX, nY, xleg, yleg, onlyPositive = TRUE,
+	                 equalAxis = TRUE, integerLegend = TRUE, xlim, ylim, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -29,6 +30,11 @@ The grouping id for the y coordinate (e.g. assignment of number of copies)
 title for the legend of the x values}
   \item{yleg}{
 title for the legend of the y values}
+\item{xlim}{limits for the x axis}
+\item{ylim}{limits for the y axis}
+\item{onlyPositive}{only plot values positive in x and y}
+\item{equalAxis}{xlim and ylim are forced to be the same}
+\item{integerLegend}{Only give integers}
   \item{\dots}{passed to the scatter plot command
 %%     ~~Describe \code{\dots} here~~
 }

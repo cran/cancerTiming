@@ -10,7 +10,11 @@ Plot observed allele frequencies from sequencing data against their location on 
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-plotAlleleByPosition(mutData, segmentData = NULL, whChr = 1:22, chromosomeId = "chr", sampleName = NULL, sample = FALSE, tumorAFId, positionId, type = "mutation", startId = "start", endId = "end", segFactorId, tCNId, MarkId, segColors, normCont = NULL,  addData = NULL, addColor="red",col="black",pch=1,lwd=2,xlim,ylab="Allele Frequency",...)
+plotAlleleByPosition(mutData, segmentData = NULL, whChr = 1:22, chromosomeId = "chr", 
+	sampleName = NULL, sample = FALSE, tumorAFId, positionId, type = "mutation", 
+	startId = "start", endId = "end", segFactorId, tCNId, MarkId, segColors, 
+	normCont = NULL,  addData = NULL, addColor="red",col="black",pch=1,lwd=2,
+	xlim,ylab="Allele Frequency",...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -100,13 +104,17 @@ returns invisibly the vector of colors for the segmentations, useful for making 
 Elizabeth Purdom}
 
 \examples{
-	data(mutData)
-	onlyMuts<-subset(mutData,is.na(rsID) & position <= 1.8E7) #only mutations in the CNLOH region
+data(mutData)
+onlyMuts<-subset(mutData,is.na(rsID) & position <= 1.8E7) #only mutations in the CNLOH region
 	snps<-subset(mutData,!is.na(rsID) )
-	segData<-data.frame(chromosome="17",start=c(0,1.8e7+1),end=c(1.8e7,max(mutData$position)),totalCpy=c(2,NA),
-		markRegion=c(FALSE,TRUE))
-	out<-plotAlleleByPosition(onlyMuts,whChr=17, segmentData=segData,tCNId="totalCpy",normCont=0.22,addData=snps,pch=19,addColor="grey",MarkId="markRegion",segColors="pink",xaxt="n",xlab="Position",segFactorId="totalCpy",chromosomeId = "chromosome",tumorAFId="allelefreq",positionId="position",type="mutation") 
-	axis(1,line=1,tick=FALSE)
-	legend("topright",legend=c(names(out),"unknown"),fill=c(out,NA),title="Total Copy Number")
+segData<-data.frame(chromosome="17",start=c(0,1.8e7+1),end=c(1.8e7,max(mutData$position)),
+	totalCpy=c(2,NA),markRegion=c(FALSE,TRUE))
+out<-plotAlleleByPosition(onlyMuts,whChr=17, segmentData=segData,
+	tCNId="totalCpy",normCont=0.22, addData=snps,pch=19,addColor="grey",MarkId="markRegion",
+	segColors="pink",xaxt="n",xlab="Position", segFactorId="totalCpy",
+	chromosomeId = "chromosome",tumorAFId="allelefreq", 
+	positionId="position",type="mutation") 
+axis(1,line=1,tick=FALSE)
+legend("topright",legend=c(names(out),"unknown"),fill=c(out,NA),title="Total Copy Number")
 
 }

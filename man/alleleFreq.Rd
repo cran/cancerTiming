@@ -13,8 +13,10 @@ Calculate allele frequencies that would be possible for a variant found in a reg
 }
 \usage{
 allAF(totalCopy,normCont=0,totalCopyNormal=2,type=c("mutation","SNPHet","SNPHomo"))
-contAF(trueAF, totalCopy, normCont = 0, totalCopyNormal = 2, type = c("mutation", "SNPHet", "SNPHomo"))
-decontAF(contAF, totalCopy, normCont = 0, totalCopyNormal = 2, type = c("mutation", "SNPHet", "SNPHomo"))
+contAF(trueAF, totalCopy, normCont = 0, totalCopyNormal = 2, 
+	type = c("mutation", "SNPHet", "SNPHomo"))
+decontAF(contAF, totalCopy, normCont = 0, totalCopyNormal = 2, 
+	type = c("mutation", "SNPHet", "SNPHomo"))
 errorAF(trueAF,seqError=0)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -72,6 +74,9 @@ Elizabeth Purdom
 contAF(1/3,totalCopy=3,normCont=.1,type="mutation")
 contAF(c(.5,.5,.5),totalCopy=c(2,4,6),normCont=.2)
 
-allAF(totalCopy=3,normCont=c(0,.1,.5),type="mutation") #allele frequencies possible for a location that is same as reference in the normal, for three different values of normal contamination
-allAF(totalCopy=3,normCont=c(0,.1,.5),type="SNPHet") #same, but for those that are heterozygous in the normal
+#allele frequencies possible for a location that is same 
+#as reference in the normal, for three different values of normal contamination
+allAF(totalCopy=3,normCont=c(0,.1,.5),type="mutation") 
+#same, but for those that are heterozygous in the normal
+allAF(totalCopy=3,normCont=c(0,.1,.5),type="SNPHet") 
 }

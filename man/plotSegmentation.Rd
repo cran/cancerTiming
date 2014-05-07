@@ -9,7 +9,8 @@ Plot the values of a segmentation against chromosome position.
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-plotSegmentation(segs, valId, col = palette(),lty=1, lwd = 2, xlim, ylim,xlab="Position", ...)
+plotSegmentation(segs, valId, col = palette(),lty=1, lwd = 2, xlim, ylim,
+	xlab="Position", ylab = valId,...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -36,9 +37,8 @@ lwd for the lines
 %%     ~~Describe \code{ylim} here~~
 }
 \item{xlab}{The label for the x-axis}
-  \item{\dots}{ passed to initial plotting command
-%%     ~~Describe \code{\dots} here~~
-}
+\item{ylab}{The label for the y-axis}
+  \item{\dots}{ passed to initial plotting command}
 }
 \value{
 returns invisibly the col and lty after any processing done, useful for legends.
@@ -47,9 +47,13 @@ returns invisibly the col and lty after any processing done, useful for legends.
 Elizabeth Purdom}
 \examples{
 data(mutData)
-segData<-data.frame(chromosome="17",start=c(0,1.8e7+1),end=c(1.8e7,max(mutData$position)),val=c(2,3))
-cp1<-data.frame(chromosome="17",start=c(0,1.8e7+1),end=c(1.8e7,max(mutData$position)),val=c(1,1))
-cp2<-data.frame(chromosome="17",start=c(0,1.8e7+1),end=c(1.8e7,max(mutData$position)),val=c(.9,2))
-out<-plotSegmentation(list(total=segData,cp1=cp1,cp2=cp2),valId="val",lwd=2,ylab="Segmentation Value")
+segData<-data.frame(chromosome="17",start=c(0,1.8e7+1),
+	end=c(1.8e7,max(mutData$position)),val=c(2,3))
+cp1<-data.frame(chromosome="17",start=c(0,1.8e7+1),
+	end=c(1.8e7,max(mutData$position)),val=c(1,1))
+cp2<-data.frame(chromosome="17",start=c(0,1.8e7+1),
+	end=c(1.8e7,max(mutData$position)),val=c(.9,2))
+out<-plotSegmentation(list(total=segData,cp1=cp1,cp2=cp2),
+	valId="val",lwd=2,ylab="Segmentation Value")
 legend("topright",names(out),fill=out)
 }

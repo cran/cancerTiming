@@ -8,7 +8,9 @@
 Plot of densities/histograms of allele frequencies, useful for evaluating normal contamination estimate, total Copy number estimates, etc.
 }
 \usage{
-plotAlleleDensity(af, depth, groupingId, totalCopy, groupCol=palette(),normCont = 0,type="mutation", minDepth = 40, lineCols = c("grey", "tan4"), minMut = 40, histogram = FALSE)
+plotAlleleDensity(af, depth, groupingId, totalCopy, groupCol=palette(),normCont = 0,
+	type="mutation", minDepth = 40, lineCols = c("grey", "tan4"), minMut = 40, 
+	histogram = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -64,9 +66,11 @@ Elizabeth Purdom}
 \examples{
 data(mutData)
 onlyMuts<-subset(mutData,is.na(rsID) & position <= 1.8E7) #only mutations in the CNLOH region
-plotAlleleDensity(onlyMuts$allelefreq,onlyMuts$t_ref_count+onlyMuts$t_alt_count,totalCopy=2,normCont=c(0,0.22),minMut=0,minDepth=0,hist=TRUE)
+plotAlleleDensity(onlyMuts$allelefreq,onlyMuts$t_ref_count+onlyMuts$t_alt_count,
+	totalCopy=2,normCont=c(0,0.22),minMut=0,minDepth=0,hist=TRUE)
 
 gpId<-factor(is.na(mutData$rsID),levels=c("TRUE","FALSE"),labels=c("Mutations","SNPs"))
-plotAlleleDensity(mutData$allelefreq,mutData$t_ref_count+mutData$t_alt_count,groupCol=c("black","red"),totalCopy=2,groupingId=gpId,minMut=0,minDepth=30,hist=FALSE)
+plotAlleleDensity(mutData$allelefreq,mutData$t_ref_count+mutData$t_alt_count,
+	groupCol=c("black","red"),totalCopy=2,groupingId=gpId,minMut=0,minDepth=30,hist=FALSE)
 legend("topleft",levels(gpId),fill=c("red","black"))
 }

@@ -51,7 +51,7 @@ plotAlleleByPosition<-function(mutData,segmentData=NULL,whChr=1:22,chromosomeId=
 	}
 	if(!any(whChr %in% mutData$chr)) warning("No values of whChr found in mutData")
 	for( i in whChr){
-	    chrdataSNP <- subset(mutData, chr == i);
+	    chrdataSNP <- mutData[mutData$chr==i,]#subset(mutData, chr == i);
         if(sample){
             if(nrow(chrdataSNP)>10000){
                 ind<-sample(1:nrow(chrdataSNP),size=10000,replace=FALSE)
@@ -62,7 +62,7 @@ plotAlleleByPosition<-function(mutData,segmentData=NULL,whChr=1:22,chromosomeId=
 			xlim<-range(chrdataSNP$pos)
 			if(doSeg) xlim<-range(c(xlim,segmentData$start[segmentData$chr==i],segmentData$end[segmentData$chr==i]))
 		}
-	    if(doLOH) chrdataLOH <- subset(addData, chr == i );
+	    if(doLOH) chrdataLOH <- addData[addData$chr==i,]#subset(addData, chr == i );
 	    if(nrow(chrdataSNP)==0) next;
 		if(doLOH && nrow(chrdataLOH) > 0){
 			with(chrdataLOH, plot(pos, tAF, ylim=c(0, 1), col=addColor,xlim=xlim,ylab=ylab,...))
@@ -169,39 +169,51 @@ multidensity<-function(x,col=palette(),lwd=1,lty=1,xlim,ylab="Density",...){
 	out<-mapply(dens,rep(col,length=length(dens)),rep(lwd,length=length(dens)),rep(lty,length=length(dens)),FUN=function(x,col,lwd,lty){lines(x,col=col,lwd=lwd,lty=lty)})
 }
 
-plotCopies<-function(x,y,nX,nY,xleg,yleg,...){
-	whneg<- which(x<0 | y<0)
-	if(length(whneg)>0){
-		x<-x[-whneg]
-		y<-y[-whneg]
-		nX<-nX[-whneg]
-		nY<-nY[-whneg]
+plotCopies<-function(x,y,nX,nY,xleg,yleg,onlyPositive=TRUE,equalAxis=TRUE,integerLegend=TRUE,xlim,ylim,...){
+	if(onlyPositive){
+		whneg<- which(x<0 | y<0)
+		if(length(whneg)>0){
+			x<-x[-whneg]
+			y<-y[-whneg]
+			nX<-nX[-whneg]
+			nY<-nY[-whneg]
+		}
+		if(length(x)==0) stop("no positive values in x or y")		
 	}
-	if(length(x)==0) stop("no positive values in x or y")
 	makeValues<-function(x,parValues){
 		names(x)<-x
-		x[x<0]<-NA
-		noMatch<-any(is.na(x))
-		if(!noMatch) parValues<-parValues[-1]
-		names(x)[is.na(x)]<-"No clear correspondence"
+		if(onlyPositive){
+			x[x<0]<-NA
+			noMatch<-any(is.na(x))
+			if(!noMatch) parValues<-parValues[-1]
+			names(x)[is.na(x)]<-"No clear correspondence"
+		}
+		else parValues<-parValues[-1]
 		numValues<-sort(unique(x[!is.na(x)]))
 		maxVal<-max(x,na.rm=TRUE)
-		xFac<-factor(names(x),levels=if(noMatch) c("No clear correspondence",0:maxVal) else 0:maxVal)
+		xFac<-if(integerLegend) factor(names(x),levels=if(noMatch) c("No clear correspondence",0:maxVal) else 0:maxVal) else factor(if(is.numeric(x)) round(x,3) else x)
 		parValuesVec<-rep(parValues,nlevels(xFac))[xFac]
 		return(list(parValuesVec=parValuesVec,parValues=parValues,factor=xFac))
 	}
-	pchC<-makeValues(nX,c(1,22:25))
+	pchC<-makeValues(nX,c(1,c(22,24,23,25)))
 	colC<-makeValues(nY,palette()[-6])		
-	lim<-range(c(0,x,y),na.rm=TRUE)
-	plot(x,y,col="black",xlim=lim,ylim=lim,bg=colC$parValuesVec,pch=pchC$parValuesVec,...)
+	if(equalAxis){
+		lim<-if(onlyPositive) range(c(0,x,y),na.rm=TRUE) else range(c(x,y),na.rm=TRUE)
+		xlim<-ylim<-lim
+	}
+	else{
+		if(missing(xlim)) xlim<-range(x,na.rm=TRUE)
+		if(missing(ylim)) ylim<-range(y,na.rm=TRUE)
+	}
+	plot(x,y,col="black",xlim=xlim,ylim=ylim,bg=colC$parValuesVec,pch=pchC$parValuesVec,...)
 	if(missing(yleg)) yleg<-""
 	if(missing(xleg)) xleg<-""
 	legend("topleft",levels(colC$factor),fill=colC$parValues,title=yleg,bty="n")
 	legend("bottomright",levels(pchC$factor),pch=pchC$parValues,pt.bg="black",title=xleg,bty="n")
-	
+	invisible(list(col=colC,pch=pchC))
 }
 
-plotSegmentation<-function(segs,valId,col=palette(),lty=1,lwd=2,xlim,ylim,xlab="Position",...){
+plotSegmentation<-function(segs,valId,col=palette(),lty=1,lwd=2,xlim,ylim,xlab="Position",ylab=valId,...){
 	if(missing(col)) col<-rep(col,length=length(segs))
 	col<-rep(col,length=length(segs))
 	lty<-rep(lty,length=length(segs))
@@ -214,7 +226,7 @@ plotSegmentation<-function(segs,valId,col=palette(),lty=1,lwd=2,xlim,ylim,xlab="
 		y<-unlist(lapply(segs,function(x){unlist(x[,valId])}))
 		ylim<-range(y,na.rm=TRUE)
 	} 
-	plot(0,type="n",xlim=xlim,ylim=ylim,xlab=xlab,...)
+	plot(0,type="n",xlim=xlim,ylim=ylim,xlab=xlab,ylab=ylab,...)
 	for(ii in 1:length(segs)){
 		seg<-segs[[ii]]
 		if(nrow(seg)>0) segments(x0=seg$start,x1=seg$end,y0=seg[[valId]],lty=lty[[ii]],col=col[[ii]],lwd=lwd)			
@@ -223,12 +235,13 @@ plotSegmentation<-function(segs,valId,col=palette(),lty=1,lwd=2,xlim,ylim,xlab="
 }
 
 #segs should be factor saying what segment in
-plotSeqCount<-function(position,t_count,n_count,normFac=1,segs,segColors=palette(),...){
+plotSeqCount<-function(position,t_count,n_count,ylim=NULL,normFac=1,segs,segColors=palette(),...){
 	y<-log2(t_count/n_count)-log2(normFac)
 	wh<-which(!is.na(y) & is.finite(y))
 	x<-position[wh]
 	y<-y[wh]
-	plot(x,y,...)
+	if(is.null(ylim)) ylim<-quantile(y[wh],probs=c(.05,.95),na.rm=TRUE)
+	plot(x,y,ylim=ylim,...)
 	#lines(lowess(x=x,y=y), col = "red")
 	if(!missing(segs)){
 		segs<-segs[wh]
@@ -238,5 +251,6 @@ plotSeqCount<-function(position,t_count,n_count,normFac=1,segs,segColors=palette
 		segments(x0=segBeg,x1=segEnd,y0=segAve,col=segColors,lwd=2)
 	}
 	abline(h=0)
+	invisible(list(x=x,y=y))
 	
 }

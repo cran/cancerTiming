@@ -8,7 +8,8 @@ Create the event history matrix
 Create the event history matrix
 }
 \usage{
-makeEventHistory(type = c("gain", "LOH"), copies = NULL, totalCopy = sum(copies), onlyIdentifiable = TRUE)
+makeEventHistory(type = c("gain", "LOH"), copies = NULL, totalCopy = sum(copies), 
+	onlyIdentifiable = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
