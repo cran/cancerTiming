@@ -31,6 +31,7 @@ Durinck, S, et al. (2011). ``Temporal Dissection of Tumorigenesis in Primary Can
 \examples{
 data(mutData)
 head(mutData)
-onlyMuts<-subset(mutData,is.na(rsID) & position <= 1.8E7) #only mutations in the CNLOH region
+#only mutations in the CNLOH region
+onlyMuts<-subset(mutData,is.na(rsID) & position <= 1.8E7) 
 }
 \keyword{datasets}

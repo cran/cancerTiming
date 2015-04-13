@@ -32,7 +32,7 @@ Percentage of normal contamination, can be vector with length equal to length(x)
 \details{
 maxCopy and totalCopy are used to determine the possible allele frequencies in a pure tumor cell, given by 1:maxCopy/totalCopy. The default of maxCopy=totalCopy ensures that all theoretically possible alleles are considered given the lack of further information, but in general will not be correct. For example, if the region has allelic copy 2/3, then there are only three possible allele frequencies rather than five.
 }
-\value{list(alleleSet=afdf,perLocationProb=out,assignments=data.frame(nCopies=assign,totalCopy=totalCopy,AF=assign/totalCopy)))
+\value{
 List with following values:
 \item{perLocationProb}{matrix of dimension (number of locations) x (number of possible allele frequencies), with each row corresponding to a given location and each column giving the probability of observing the data for that location for each of the possible allele frequencies}
 \item{assignments}{data.frame of dimension (number of locations) x 3, with columns ncopies=estimate of number of copies mutation is found in, based on which maximizes the likelihood, totalCopy=totalCopy given by user, AF=estimate of true allele frequency given by ncopies/totalCopy }

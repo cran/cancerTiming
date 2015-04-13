@@ -53,7 +53,7 @@ divideGenome<-function(size=10){
 
 
 labelSeg<-function(chr,start,end,pctOv=0.10){
-	if(require(GenomicRanges)){
+	if(requireNamespace("GenomicRanges", quietly = TRUE) & requireNamespace("IRanges", quietly = TRUE)){ #require(GenomicRanges)
 		hg19chromosomes<-read.table(.fpath("hg19chromosomes.txt"),stringsAsFactors=FALSE)
 		#load(.fpath("hg19chromosomes.rdata"))
 #		data("hg19chromosomes",package="cancerTiming", envir = environment())
@@ -62,19 +62,19 @@ labelSeg<-function(chr,start,end,pctOv=0.10){
 		hg19chromosomes$chr<-as.character(hg19chromosomes$chr)
 
 
-		centGr<-GRanges(hg19chromosomes$chr,IRanges(hg19chromosomes$start,hg19chromosomes$end),label=hg19chromosomes$label)
-		segGr<-GRanges(chr,IRanges(start,end))
-		ov<-findOverlaps(subject=segGr,query=centGr)
-		subsetByOverlaps(query=segGr,subject=centGr)
-		shits <- segGr[subjectHits(ov)]
-		chits <- centGr[queryHits(ov)]
-		mint <- pintersect(shits, chits)
-		spercent <- width(mint) / width(shits)	
-		df<-data.frame(index=queryHits(ov),pct=spercent,val=values(centGr)$label[queryHits(ov)])
-		lab<-by(df,list(subjectHits(ov)),
+		centGr<-GenomicRanges::GRanges(hg19chromosomes$chr,IRanges::IRanges(hg19chromosomes$start,hg19chromosomes$end),label=hg19chromosomes$label)
+		segGr<-GenomicRanges::GRanges(chr,IRanges::IRanges(start,end))
+		ov<-GenomicRanges::findOverlaps(subject=segGr,query=centGr)
+		GenomicRanges::subsetByOverlaps(query=segGr,subject=centGr)
+		shits <- segGr[GenomicRanges::subjectHits(ov)]
+		chits <- centGr[GenomicRanges::queryHits(ov)]
+		mint <- GenomicRanges::pintersect(shits, chits)
+		spercent <- GenomicRanges::width(mint) / GenomicRanges::width(shits)	
+		df<-data.frame(index=GenomicRanges::queryHits(ov),pct=spercent,val=GenomicRanges::values(centGr)$label[GenomicRanges::queryHits(ov)])
+		lab<-by(df,list(GenomicRanges::subjectHits(ov)),
 			function(x){
 				wh<-which(x$pct>=pctOv)
-				paste(sort(values(centGr)$label[x$index[wh]]),collapse="",sep="")
+				paste(sort(GenomicRanges::values(centGr)$label[x$index[wh]]),collapse="",sep="")
 			})
 		labInd<-as.numeric(names(lab)) #just to be safe.
 		lab<-as.vector(lab)

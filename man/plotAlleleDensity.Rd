@@ -1,15 +1,15 @@
 \name{plotAlleleDensity}
 \alias{plotAlleleDensity}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{ plot density/histogram of allele frequencies
-%%  ~~function to do ... ~~
+\title{Plot density/histogram of allele frequencies
 }
 \description{
 Plot of densities/histograms of allele frequencies, useful for evaluating normal contamination estimate, total Copy number estimates, etc.
 }
 \usage{
-plotAlleleDensity(af, depth, groupingId, totalCopy, groupCol=palette(),normCont = 0,
-	type="mutation", minDepth = 40, lineCols = c("grey", "tan4"), minMut = 40, 
+plotAlleleDensity(af, depth, groupingId, totalCopy, groupCol=palette(),
+	normCont = 0, type="mutation", minDepth = 40, 
+	lineCols = c("grey", "tan4"), minMut = 40, 
 	histogram = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -65,7 +65,8 @@ Elizabeth Purdom}
 
 \examples{
 data(mutData)
-onlyMuts<-subset(mutData,is.na(rsID) & position <= 1.8E7) #only mutations in the CNLOH region
+#only mutations in the CNLOH region
+onlyMuts<-subset(mutData,is.na(rsID) & position <= 1.8E7) 
 plotAlleleDensity(onlyMuts$allelefreq,onlyMuts$t_ref_count+onlyMuts$t_alt_count,
 	totalCopy=2,normCont=c(0,0.22),minMut=0,minDepth=0,hist=TRUE)
 

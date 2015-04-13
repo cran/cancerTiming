@@ -9,7 +9,8 @@ Estimate the proportion of time spent between different chromosomal abnormalitie
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-eventTiming	(x, m, history, totalCopy, method = c("fullMLE","partialMLE", "Bayes"), 
+eventTiming	(x, m, history, totalCopy, 
+	method = c("fullMLE","partialMLE", "Bayes"), 
 	type = c("gain", "CNLOH"), seqError = 0, bootstrapCI = NULL, 
 	B = if (method =="Bayes") 10000 else 500, CILevel = 0.95, normCont = 0, 
 	verbose = TRUE, returnAssignments = FALSE, coverageCutoff = 1,
@@ -83,7 +84,7 @@ A list with values
 \item{q}{estimate of the multinomial parameter q}
 \item{perLocationProb}{output from estimateQ giving per location P(P[i]|X[i],q), if requested. Only locations used in the estimation are included.}
 \item{optimDetails}{optimization details from estimateQ}
-\item{call}{list of the parameters of the call to the function: history,totalCopy,type,exactAllele,normCont,coverageCutoff,minMutations. In addition, `alleleSet' is included in this list, which is the set of possible alleles for this history, after adjusting for normal contamination. }
+\item{call}{list of the parameters of the call to the function: history, totalCopy, type, exactAllele, normCont, coverageCutoff, minMutations. In addition, `alleleSet' is included in this list, which is the set of possible alleles for this history, after adjusting for normal contamination. }
 }
 \references{
 Durinck S, et al. (2011). ``Temporal Dissection of Tumorigenesis in Primary Cancers." Cancer Discovery, 1(2): 137--143.

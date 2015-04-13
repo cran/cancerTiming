@@ -5,11 +5,11 @@
 Create the event history matrix
 }
 \description{
-Create the event history matrix
+Create the event history matrix needed for the event timing algorithm
 }
 \usage{
-makeEventHistory(type = c("gain", "LOH"), copies = NULL, totalCopy = sum(copies), 
-	onlyIdentifiable = TRUE)
+makeEventHistory(type = c("gain", "LOH"), copies = NULL, 
+	totalCopy = sum(copies), onlyIdentifiable = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -25,14 +25,14 @@ an integer between 2 and 5. totalCopy must be the sum of the numbers given for t
 %%     ~~Describe \code{totalCopy} here~~
 }
   \item{onlyIdentifiable}{
-logical. Only return event matrices corresponding to event histories with identifiable $pi_0$?
+logical. Only return event matrices corresponding to event histories with identifiable \eqn{\pi_0}{pi[0]}?
 %%     ~~Describe \code{onlyIdentifiable} here~~
 }
 }
 % \details{
 % %%  ~~ If necessary, more details than the description above ~~
 % }
-\value{The $A$ matrix relates allele frequencies to the event history. The vector $A pi$ gives the probabilities of each allele frequency possible for the specified event.
+\value{The A matrix relates allele frequencies to the event history. The vector \eqn{A \pi}{A pi} gives the probabilities of each allele frequency possible for the specified event.
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}

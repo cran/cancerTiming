@@ -12,7 +12,8 @@ Get allele frequencies for tumor data
 Calculate allele frequencies that would be possible for a variant found in a region with a given number of total copies of the tumor, adjusted for the given percentage of normal contamination. 
 }
 \usage{
-allAF(totalCopy,normCont=0,totalCopyNormal=2,type=c("mutation","SNPHet","SNPHomo"))
+allAF(totalCopy,normCont=0,totalCopyNormal=2,
+	type=c("mutation","SNPHet","SNPHomo"))
 contAF(trueAF, totalCopy, normCont = 0, totalCopyNormal = 2, 
 	type = c("mutation", "SNPHet", "SNPHomo"))
 decontAF(contAF, totalCopy, normCont = 0, totalCopyNormal = 2, 

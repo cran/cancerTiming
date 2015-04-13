@@ -14,8 +14,8 @@ returnAssignments=FALSE,coverageCutoff=1,minMutations=10,init=NULL,maxiter=100, 
 
 	nMuts<-length(x)
 	if(length(m)!=nMuts) stop("x and m must be of same length")
-	if(length(mutationId)!=length(unique(mutationId))) warning("mutationId not unique values; using index as id instead.")
-	if(length(mutationId)!=nMuts) warning("mutationId an invalid length; using index as id instead.")
+	if(length(mutationId)!=length(unique(mutationId)) & verbose) warning("mutationId not unique values; using index as id instead.")
+	if(length(mutationId)!=nMuts & verbose) warning("mutationId an invalid length; using index as id instead.")
 	
 	if(returnAssignments) returnData<-TRUE 
 	else returnData<-FALSE
@@ -180,6 +180,12 @@ returnAssignments=FALSE,coverageCutoff=1,minMutations=10,init=NULL,maxiter=100, 
 	possAlleles<-alleleSet
 	lengthOfTheta<-length(possAlleles)-1
 	if(nrow(history)!=length(possAlleles)) stop("length of alleleSet must equal the number of rows of history.")
+	##check if it is one of the easy ones:
+	Avec<-as.vector(history)
+	easyType<-"no"
+	if(identical(Avec,c(0, 1, 2, 0))) easyType<-"CNLOH"
+	if(identical(Avec,c(1 ,1, 3, 0))) easyType<-"SingleGain"
+	
 	Ainv<-solve(history)
 	if(is.null(init)){
 		init<-history%*%rep(1/length(possAlleles),length=length(possAlleles))	
@@ -188,77 +194,137 @@ returnAssignments=FALSE,coverageCutoff=1,minMutations=10,init=NULL,maxiter=100, 
 	} 
 	##Break it into 2 because useful to have a function that assigns most likely allele to each
 	EStep<-function(q){ ####Calculate P(Pi=a | Xi,q) each i and a
-		PPerAllele<-mapply(possAlleles,q,FUN=function(a,qa){
-			dbinom(x=x, size=m, prob=a)*qa 
+		#P(Pi=a | Xi)=P(Xi|Pi=a)P(Pi=a)/sum(P(Xi|Pi=a)P(Pi=a))
+		
+		#calculate the log of the probability (numerator)
+		logPPerAllele<-mapply(possAlleles,q,FUN=function(a,qa){
+			dbinom(x=x, size=m, prob=a,log=TRUE)+log(qa) 
 		}) #returns a N x numb.Alleles Matrix; needs to be normalized
-		PPerAllele<- prop.table(PPerAllele,1) #divide by the sum of each row
-		return(PPerAllele)
+		
+		#-----
+		#calculate log of sum of probabilities (denominator)
+		#-----
+		#note if individual probabilities very small, then denominator sums to zero, so divide by zero -- problem!
+		#use log sum exponential trick:
+		# log(e[theta1]+e[theta2]+...)=m+log(e[theta1-m]+e[theta2-m]+...), where m=max(theta[i])
+		#here theta1=log[P(Xi|Pi=a)]+log[P(Pi=a)]
+		#-----
+
+		rowMax<-apply(logPPerAllele,1,max) #max of theta[i]
+		logPPerAlleleMinusMax<-sweep(logPPerAllele,1,rowMax,"-") #subtract off m from each row
+		logdenom<-rowMax+log(apply(exp(logPPerAlleleMinusMax),1,sum))
+		
+		#-----
+		#calculate log of sum of probabilities (denominator)
+		#-----
+		#now overall prob=exp[num]/exp[denom]=exp[num-denom]
+		#-----
+		logPPerAllele<-sweep(logPPerAllele,1,logdenom,"-")
+		
+	
+ 		# #-----
+ 		# #Old simplistic code:
+ 		# #-----
+ 		#     	PPerAllele<-mapply(possAlleles,q,FUN=function(a,qa){
+ 		# 	dbinom(x=x, size=m, prob=a,log=FALSE)*(qa) 
+ 		# }) #returns a N x numb.Alleles Matrix; needs to be normalized
+ 		# PPerAllele<- prop.table(PPerAllele,1) #divide by the sum of each row
+ 		
+		#compare the two:
+		# cbind(exp(logPPerAllele),PPerAllele)
+ 		
+		
+		return(exp(logPPerAllele))
 	}
 	
 	###Constraints for the q
 	#The feasible region is defined by ui %*% theta - ci >= 0. 
-	uiL1<-diag(rep(-1,lengthOfTheta),nrow=lengthOfTheta,ncol=lengthOfTheta)
-	ciL1<-rep(1,lengthOfTheta)
-	uiGr0<-diag(rep(1,lengthOfTheta),nrow=lengthOfTheta,ncol=lengthOfTheta)
-	ciGr0<-rep(0,lengthOfTheta)
-	uiA<-Ainv%*%(rbind(diag(lengthOfTheta),rep(-1,lengthOfTheta)))
-	ciA<- - Ainv%*%c(rep(0,lengthOfTheta),1)
-	ui<-rbind(uiL1,uiGr0,uiA)
-	ci<- c(-ciL1,-ciGr0,ciA)
+	if(easyType=="no"){
+		uiL1<-diag(rep(-1,lengthOfTheta),nrow=lengthOfTheta,ncol=lengthOfTheta)
+		ciL1<-rep(1,lengthOfTheta)
+		uiGr0<-diag(rep(1,lengthOfTheta),nrow=lengthOfTheta,ncol=lengthOfTheta)
+		ciGr0<-rep(0,lengthOfTheta)
+		uiA<-Ainv%*%(rbind(diag(lengthOfTheta),rep(-1,lengthOfTheta)))
+		ciA<- - Ainv%*%c(rep(0,lengthOfTheta),1)
+		ui<-rbind(uiL1,uiGr0,uiA)
+		ci<- c(-ciL1,-ciGr0,ciA)		
+	}
 	
 	#make matrix of (1-a[j])^m[i]
 	MStep<-function(PMat=NULL,qinit){ #estimate of q constrained so that solve(history)%*%q is all positive
 		if(is.null(alleleFreq)) Na<-colSums(PMat) #from E-Step, the estimated values from the multinomial...basically just the maximum likelihood estimation if knew Pi exactly
 		else Na<-alleleFreq
-		f<-function(q){
-			qS<-1-sum(q)
-			#-dmultinom(Na, prob=c(q,qS), log = TRUE) #just to check; should be equivalent, but faster to not calculated normalizing constant
-			ll<- sum(Na*log(c(q,qS)))
-			if(xGreaterZero){
-				#missZero[i]= 1- sum_j{(1-a[j])^m[i] q[j]}
-				missZero<-1-rowSums(mapply(possAlleles,c(q,qS),FUN=function(a,qa){
-					(1-a)^m*qa 
-				})#returns a N x numb.Alleles Matrix; needs to be normalized
-				) #sum over all j, so missZero is vector of length i single value for each i
-				ll<-ll-sum(missZero)
-			} 
-			return( - ll) #because minimizing
-		}
-
-		#used in the gradient
-		#calculate (1-a[S])^{m[i]} - (1-a[j])^{m[i]} 
-		#returns a N x S-1 Matrix; needs to be normalized
-		aS<-tail(possAlleles,1)
-		num<-mapply(head(possAlleles,-1),q,FUN=function(a,qa){
-			(1-aS)^m - (1-a)^m
-		})
-		gr<-function(q){
-			qS<-1-sum(q)
-			NS<-tail(Na,1)
-			g<-(head(Na,-1)/q - NS/qS) #was - (head(Na,-1)/q - NS/qS*q) #which is error; why got wrong answer.
-			if(xGreaterZero){
-				#missZero[i]= 1- sum_j{(1-a[j])^m[i] q[j]}
-				missZero<-1-rowSums(mapply(possAlleles,c(q,qS),FUN=function(a,qa){
-					(1-a)^m*qa 
-				})#returns a N x numb.Alleles Matrix; needs to be normalized
-				) #sum over all j, so missZero is vector of length i single value for each i
-				g<-g-colSums(sweep(num,1,missZero,"/"))
+		if(easyType %in% c("CNLOH","SingleGain")){
+			#print("easytype")
+			if(easyType=="CNLOH"){ 
+				a<-0
+				b<-1
 			}
-			return(-g) #because minimizing
-		}
-		theta<-head(qinit,-1)
-		if(lengthOfTheta==1){
-			upper<-min((ci/ui)[ui<0])
-			lower<-max((ci/ui)[ui>0])
-			out<-optimize(f=f,interval=c(lower,upper))
-			qout<-c(out$minimum,1-out$minimum)
+			if(easyType=="SingleGain"){
+				a<-1/2
+				b<-1
+			}
+			qout<-Na[1]/sum(Na)
+			if(qout>b) qout<-b
+			if(qout<a) qout<-a
+			qout<-c(qout,1-qout)
 		}
 		else{
-			out<-constrOptim(theta=theta,f = f, grad=if(useGradient) gr else NULL, ui=ui, ci=ci) #when use gr, get wrong answer -- returns me to init, doesn't iterate, etc. WHY????
-			qout<-c(out$par,1-sum(out$par))
+			f<-function(q){
+				qS<-1-sum(q)
+				#-dmultinom(Na, prob=c(q,qS), log = TRUE) #just to check; should be equivalent, but faster to not calculated normalizing constant
+				ll<- sum(Na*log(c(q,qS)))
+				if(xGreaterZero){
+					#missZero[i]= 1- sum_j{(1-a[j])^m[i] q[j]}
+					missZero<-1-rowSums(mapply(possAlleles,c(q,qS),FUN=function(a,qa){
+						(1-a)^m*qa 
+					})#returns a N x numb.Alleles Matrix; needs to be normalized
+					) #sum over all j, so missZero is vector of length i single value for each i
+					ll<-ll-sum(missZero)
+				} 
+				return( - ll) #because minimizing
 			}
+
+			#used in the gradient
+			#calculate (1-a[S])^{m[i]} - (1-a[j])^{m[i]} 
+			#returns a N x S-1 Matrix; needs to be normalized
+			aS<-tail(possAlleles,1)
+			# #bug reported
+			# num<-mapply(head(possAlleles,-1),q,FUN=function(a,qa){
+			# 	(1-aS)^m - (1-a)^m
+			# })
+			#fix with
+			num<-sapply(head(possAlleles,-1),FUN=function(a,qa){
+				(1-aS)^m - (1-a)^m
+			})
+			gr<-function(q){
+				qS<-1-sum(q)
+				NS<-tail(Na,1)
+				g<-(head(Na,-1)/q - NS/qS) #was - (head(Na,-1)/q - NS/qS*q) #which is error; why got wrong answer.
+				if(xGreaterZero){
+					#missZero[i]= 1- sum_j{(1-a[j])^m[i] q[j]}
+					missZero<-1-rowSums(mapply(possAlleles,c(q,qS),FUN=function(a,qa){
+						(1-a)^m*qa 
+					})#returns a N x numb.Alleles Matrix; needs to be normalized
+					) #sum over all j, so missZero is vector of length i single value for each i
+					g<-g-colSums(sweep(num,1,missZero,"/"))
+				}
+				return(-g) #because minimizing
+			}
+			theta<-head(qinit,-1)
+			if(lengthOfTheta==1){
+				upper<-min((ci/ui)[ui<0])
+				lower<-max((ci/ui)[ui>0])
+				out<-optimize(f=f,interval=c(lower,upper),tol=.Machine$double.eps)
+				qout<-c(out$minimum,1-out$minimum)
+			}
+			else{
+				out<-constrOptim(theta=theta,f = f, grad=if(useGradient) gr else NULL, ui=ui, ci=ci) #when use gr, get wrong answer -- returns me to init, doesn't iterate, etc. WHY????
+				qout<-c(out$par,1-sum(out$par))
+				}
+		}
 		names(qout)<-names(possAlleles)
-		return(qout)
+		return(qout)	
 	}
 	#print("gr uses - (head(Na,-1)/q - NS/qS) ")
 	TotalStep<-function(q){
