@@ -1,5 +1,5 @@
 #######analyze each of the data sets
-eventTimingOverList<-function(dfList,normCont,eventArgs){
+eventTimingOverList<-function(dfList,normCont,eventArgs=NULL){
 	###used for timing straightforward 
 	#assume dfList is list of data per sample; each sample must have data frame consisting of all mutations with the following columns:
 		#type one of c("Other","CNLOH","SingleGain","Diploid","DoubleGain")
@@ -13,40 +13,51 @@ eventTimingOverList<-function(dfList,normCont,eventArgs){
 	if(any(sapply(dfList,function(x){length(grep("[.]",x$segId))>0}))) stop("segId cannot contain a period")
 	if(is.null(names(dfList))) names(dfList)<-paste("Sample",1:length(dfList),sep="")
 	if(length(normCont)!=length(dfList)) stop("dfList and normCont must be of the same length (1 per sample)")
-	whCall<-lapply(dfList,function(x){tapply(x$segId,factor(x$type,levels=c("Other","CNLOH","SingleGain","Diploid","DoubleGain")),unique)})
-	mapply(whCall,normCont,dfList,FUN=function(x,nc,dat){
-		ACNLOH<-makeEventHistory(totalCopy=2,type="LOH")[[1]]
-		eventCNLOH<-lapply(x[["CNLOH"]],function(segId){
-			subdat<-dat[which(dat$segId==segId),]
-			#print(segId)
-	#		print(dim(subdat))
-			out<-do.call(eventTiming,c(list(x=subdat$nMutAllele, m=subdat$nReads, 
-				history=ACNLOH,totalCopy=2,type="CNLOH",mutationId=subdat$mutationId,
-				normCont=nc),eventArgs))
-		})
-		names(eventCNLOH)<-x[["CNLOH"]]
-		AGain<-makeEventHistory(totalCopy=3,type="gain")[[1]]
-		eventGain<-lapply(x[["SingleGain"]],function(segId){
-			subdat<-dat[which(dat$segId==segId),]
-			#print(segId)
-			# print(dim(subdat))
-			do.call(eventTiming,c(list(x=subdat$nMutAllele, m=subdat$nReads, 
-				history=AGain,totalCopy=3,type="gain",mutationId=subdat$mutationId,
-				normCont=nc),eventArgs))
-		})
-		names(eventGain)<-x[["SingleGain"]]
-		ADGain<-makeEventHistory(totalCopy=4,type="gain")[[1]]
-		eventDGain<-lapply(x[["DoubleGain"]],function(segId){
+
+	whCall<-lapply(dfList,function(x){tapply(x$segId,factor(x$type,levels=c("Other","CNLOH","SingleGain","Diploid","DoubleGain")),unique,simplify = FALSE)})
+	singleSampleFunction<-function(x,nc,dat){
+		if(length(x[["CNLOH"]])>0){
+			ACNLOH<-makeEventHistory(totalCopy=2,type="LOH")[[1]]
+			eventCNLOH<-lapply(x[["CNLOH"]],function(segId){
+				subdat<-dat[which(dat$segId==segId),]
+				#print(segId)
+		#		print(dim(subdat))
+				out<-do.call(eventTiming,c(list(x=subdat$nMutAllele, m=subdat$nReads, 
+					history=ACNLOH,totalCopy=2,type="CNLOH",mutationId=subdat$mutationId,
+					normCont=nc),eventArgs))
+			})
+			names(eventCNLOH)<-x[["CNLOH"]]
+		}
+		else eventCNLOH<-NULL
+		if(length(x[["SingleGain"]])>0){
+			AGain<-makeEventHistory(totalCopy=3,type="gain")[[1]]
+			eventGain<-lapply(x[["SingleGain"]],function(segId){
+				subdat<-dat[which(dat$segId==segId),]
+				#print(segId)
+				# print(dim(subdat))
+				do.call(eventTiming,c(list(x=subdat$nMutAllele, m=subdat$nReads, 
+					history=AGain,totalCopy=3,type="gain",mutationId=subdat$mutationId,
+					normCont=nc),eventArgs))
+			})
+			names(eventGain)<-x[["SingleGain"]]			
+		}
+		else eventGain<-NULL
+		if(length(x[["DoubleGain"]])>0){
+			ADGain<-makeEventHistory(totalCopy=4,type="gain")[[1]]
+			eventDGain<-lapply(x[["DoubleGain"]],function(segId){
 			subdat<-dat[which(dat$segId==segId),]
 			#print(segId)
 			# print(dim(subdat))
 			do.call(eventTiming,c(list(x=subdat$nMutAllele, m=subdat$nReads, 
 				history=ADGain,totalCopy=4,type="gain",mutationId=subdat$mutationId,
 				normCont=nc),eventArgs))
-		})
-		names(eventDGain)<-x[["DoubleGain"]]
+				})
+			names(eventDGain)<-x[["DoubleGain"]]
+		}
+		else eventDGain<-NULL
 		return(list(SingleGain=eventGain,CNLOH=eventCNLOH,DoubleGain=eventDGain))
-	},SIMPLIFY=FALSE)
+	}
+	mapply(whCall,normCont,dfList,FUN=singleSampleFunction,SIMPLIFY=FALSE)
 }
 
 getPi0Summary<-function(eventList,CI=TRUE){ 
@@ -58,7 +69,7 @@ getPi0Summary<-function(eventList,CI=TRUE){
 		r[!is.na(p)]<-rank(p[!is.na(p)])
 		return(data.frame(rank=r,segId=xmle$segId[ii],Sample=xmle$Sample[ii]))
 	}))
-	xmle$rank<-rankWInSample$rank[match(paste(xmle$Sample,xmle$segId),paste(rankWInSample$Sample,rankWInSample$segId))]
+	xmle$rankInSample<-rankWInSample$rank[match(paste(xmle$Sample,xmle$segId),paste(rankWInSample$Sample,rankWInSample$segId))]
 	return(xmle)
 }
 
@@ -70,14 +81,15 @@ getPi0Summary<-function(eventList,CI=TRUE){
 		type<-sapply(vals,.subset2,1)
 		N<-sapply(unlist(estList,recursive=FALSE),function(x){x$summaryTable[2,]})
 		if(CI){
-			ui<-sapply(unlist(estList,recursive=FALSE),function(x){x$piCI["Stage0",2]})
-			li<-sapply(unlist(estList,recursive=FALSE),function(x){x$piCI["Stage0",1]})
+			ui<-sapply(unlist(estList,recursive=FALSE),function(x){if("piCI" %in% names(x)) x$piCI["Stage0",2] else NA})
+			li<-sapply(unlist(estList,recursive=FALSE),function(x){if("piCI" %in% names(x)) x$piCI["Stage0",1] else NA})
 			out<-data.frame(pi0=pi0,lCI=li,uCI=ui,N=N,type=type,segId=nam)			
 		}
 		else{
 			out<-data.frame(pi0=pi0,N=N,type=type,segId=nam)			
 		}
 		row.names(out)<-NULL
+		out<-out[order(out$segId),]
 		return(out)
 	}
 	else{
