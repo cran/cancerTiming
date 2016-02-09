@@ -65,7 +65,7 @@ labelSeg<-function(chr,start,end,pctOv=0.10){
 		centGr<-GenomicRanges::GRanges(hg19chromosomes$chr,IRanges::IRanges(hg19chromosomes$start,hg19chromosomes$end),label=hg19chromosomes$label)
 		segGr<-GenomicRanges::GRanges(chr,IRanges::IRanges(start,end))
 		ov<-GenomicRanges::findOverlaps(subject=segGr,query=centGr)
-		GenomicRanges::subsetByOverlaps(query=segGr,subject=centGr)
+		#GenomicRanges::subsetByOverlaps(query=segGr,subject=centGr)
 		shits <- segGr[GenomicRanges::subjectHits(ov)]
 		chits <- centGr[GenomicRanges::queryHits(ov)]
 		mint <- GenomicRanges::pintersect(shits, chits)

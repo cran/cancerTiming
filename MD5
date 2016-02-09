@@ -1,10 +1,10 @@
-a88d6c276bdfb703b71049372c3147a4 *DESCRIPTION
+0de2314cd2037ca9619da98354d07660 *DESCRIPTION
 fa361797e721c7ec9ffac46f4cff2f9b *NAMESPACE
 33f543ecda56247481da696af5b3f1b3 *R/alleleFreq.R
 4438f7f2a394a98863382d6c9c357c8a *R/bootstrapEventTiming.R
 ce56f97116eaf3b3ca87330bec386365 *R/eventTiming.R
 f34da03f5556999035ce8cf4df22cfcc *R/eventTimingList.R
-ce3fcbf71cff2e5351a1b265e7efd156 *R/labelSeg.R
+5845177acbe5904cb7b0164806c832c5 *R/labelSeg.R
 c674677aba53a544450c43ca7970807e *R/makeEventHistory.R
 3fbfd1d37eafabf956c40ed11ce8e235 *R/mut2seg.R
 9728f5db688a03c0bfcc0d5d4e0401ea *R/plotPi0.R
