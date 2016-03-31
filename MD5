@@ -1,12 +1,12 @@
-0de2314cd2037ca9619da98354d07660 *DESCRIPTION
-fa361797e721c7ec9ffac46f4cff2f9b *NAMESPACE
+9371d7ede5799c6a080da5f2ab556bd0 *DESCRIPTION
+522590376a24d67138816619495f5ae8 *NAMESPACE
 33f543ecda56247481da696af5b3f1b3 *R/alleleFreq.R
 4438f7f2a394a98863382d6c9c357c8a *R/bootstrapEventTiming.R
 ce56f97116eaf3b3ca87330bec386365 *R/eventTiming.R
 f34da03f5556999035ce8cf4df22cfcc *R/eventTimingList.R
-5845177acbe5904cb7b0164806c832c5 *R/labelSeg.R
+f0fe254ec4cfbb3f10addc815d2a7dba *R/labelSeg.R
 c674677aba53a544450c43ca7970807e *R/makeEventHistory.R
-3fbfd1d37eafabf956c40ed11ce8e235 *R/mut2seg.R
+408873d6eaf35eac6dd096b1550fa21b *R/mut2seg.R
 9728f5db688a03c0bfcc0d5d4e0401ea *R/plotPi0.R
 0f0e9d1e4f5d92ee3b308266d1a4c726 *R/plottingCode.R
 5fb06e83b68db0c80d33f507466b9750 *data/mutData.rdata

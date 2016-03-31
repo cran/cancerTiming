@@ -53,7 +53,7 @@ divideGenome<-function(size=10){
 
 
 labelSeg<-function(chr,start,end,pctOv=0.10){
-	if(requireNamespace("GenomicRanges", quietly = TRUE) & requireNamespace("IRanges", quietly = TRUE)){ #require(GenomicRanges)
+	if(requireNamespace("GenomicRanges", quietly = TRUE) && requireNamespace("IRanges", quietly = TRUE) && packageVersion("GenomicRanges")>="1.23.23" && packageVersion("IRanges")>="2.5.39"){ #require(GenomicRanges)
 		hg19chromosomes<-read.table(.fpath("hg19chromosomes.txt"),stringsAsFactors=FALSE)
 		#load(.fpath("hg19chromosomes.rdata"))
 #		data("hg19chromosomes",package="cancerTiming", envir = environment())
@@ -66,12 +66,12 @@ labelSeg<-function(chr,start,end,pctOv=0.10){
 		segGr<-GenomicRanges::GRanges(chr,IRanges::IRanges(start,end))
 		ov<-GenomicRanges::findOverlaps(subject=segGr,query=centGr)
 		#GenomicRanges::subsetByOverlaps(query=segGr,subject=centGr)
-		shits <- segGr[GenomicRanges::subjectHits(ov)]
-		chits <- centGr[GenomicRanges::queryHits(ov)]
+		shits <- segGr[IRanges::to(ov)] #subjectHits=to
+		chits <- centGr[IRanges::from(ov)] #queryHits=from
 		mint <- GenomicRanges::pintersect(shits, chits)
 		spercent <- GenomicRanges::width(mint) / GenomicRanges::width(shits)	
-		df<-data.frame(index=GenomicRanges::queryHits(ov),pct=spercent,val=GenomicRanges::values(centGr)$label[GenomicRanges::queryHits(ov)])
-		lab<-by(df,list(GenomicRanges::subjectHits(ov)),
+		df<-data.frame(index=IRanges::from(ov),pct=spercent,val=GenomicRanges::values(centGr)$label[IRanges::from(ov)])
+		lab<-by(df,list(IRanges::to(ov)),
 			function(x){
 				wh<-which(x$pct>=pctOv)
 				paste(sort(GenomicRanges::values(centGr)$label[x$index[wh]]),collapse="",sep="")
@@ -88,8 +88,8 @@ labelSeg<-function(chr,start,end,pctOv=0.10){
 		outdf$label[labInd]<-lab
 		return(outdf$label)
 	}
-	else{stop("Sorry, this little helper function requires the package GenomicRanges, part of bioConductor. Please install this function before using.")}
-
+  else{cat("Sorry, this little helper function requires the package GenomicRanges >= 1.23.23 and IRanges >= 2.5.39, part of bioConductor. Please install this function before using. Now exiting the function.\n")}
+  
 }
 numChromosome<-function(chr){
 	chr<-as.character(chr)
