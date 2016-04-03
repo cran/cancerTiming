@@ -33,7 +33,7 @@ Elizabeth Purdom
 \code{\link[GenomicRanges:findOverlaps-methods]{findOverlaps}}
 }
 \examples{
-if(require(GenomicRanges)){
+if(require(GenomicRanges) & require(IRanges)){
 	data(mutData)
 	colnames(mutData)[1]<-c("chr")
 	segs<-data.frame(chr=c(17,17),start=c(1,1.8e7+100),end=c(1.8e7,81195210),

@@ -1,7 +1,7 @@
 
 
 mut2Seg<-function(mutData,segData,verbose=TRUE){
-  if(requireNamespace("GenomicRanges", quietly = TRUE) && requireNamespace("IRanges", quietly = TRUE) && packageVersion("GenomicRanges")>="1.23.23" && packageVersion("IRanges")>="2.5.39"){ #require(GenomicRanges)
+  if(requireNamespace("GenomicRanges", quietly = TRUE) && requireNamespace("IRanges", quietly = TRUE)){ #require(GenomicRanges)
     
 		if(any(!c('chr','end','start') %in% colnames(segData))) stop("segData must have columns with names 'chr','start',and 'end'")
 		else{
@@ -38,8 +38,8 @@ mut2Seg<-function(mutData,segData,verbose=TRUE){
 		          segData[,6:ncol(segData)])
 		mutGr<-GenomicRanges::GRanges(seqnames=factor(mutData$chr, levels=newChr), ranges=IRanges::IRanges(mutData$position,end=mutData$position))
 		ov<-GenomicRanges::findOverlaps(segGr,mutGr)
-		qHits<-IRanges::from(ov) #queryHits=from
-		sHits<-IRanges::to(ov) #subjectHits=to
+		qHits<-S4Vectors::queryHits(ov) #queryHits=from
+		sHits<-S4Vectors::subjectHits(ov) #subjectHits=to
 		combDf<-data.frame(mutData[sHits,],
 			seg_start=start(segGr)[qHits],seg_end=end(segGr)[qHits],
 				as.data.frame(GenomicRanges::values(segGr)[qHits,]))
@@ -73,6 +73,6 @@ mut2Seg<-function(mutData,segData,verbose=TRUE){
 		combDf<-combDf[order(numChromosome(combDf$chr),combDf$position),]
 		return(combDf)
 	}
-  else{cat("Sorry, this little helper function requires the package GenomicRanges >= 1.23.23 and IRanges >= 2.5.39, part of bioConductor. Please install this function before using. Now exiting the function.\n")}
+  else{cat("Sorry, this little helper function requires the package GenomicRanges and IRanges, part of bioConductor. Please install this function before using. Now exiting the function.\n")}
   
 }

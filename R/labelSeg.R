@@ -51,9 +51,25 @@ divideGenome<-function(size=10){
 	return(do.call("rbind",chrSeq))
 }
 
+# .mySubjectHits<-function(x){#subjectHits=to
+# 	if(packageVersion("IRanges")>="2.5.39"){
+# 		S4Vectors::subjectHits(x)
+# 	}
+# 	else{
+# 		IRanges::subjectHits(x)
+# 	}
+# }
+# .myQueryHits<-function(x){#queryHits=from
+# 	if(packageVersion("IRanges")>="2.5.39"){
+# 	  S4Vectors::queryHits(x)
+# 	}
+# 	else{
+# 		IRanges::queryHits(x)
+# 	}
+# }
 
 labelSeg<-function(chr,start,end,pctOv=0.10){
-	if(requireNamespace("GenomicRanges", quietly = TRUE) && requireNamespace("IRanges", quietly = TRUE) && packageVersion("GenomicRanges")>="1.23.23" && packageVersion("IRanges")>="2.5.39"){ #require(GenomicRanges)
+	if(requireNamespace("GenomicRanges", quietly = TRUE) & requireNamespace("IRanges", quietly = TRUE)){ #require(GenomicRanges)
 		hg19chromosomes<-read.table(.fpath("hg19chromosomes.txt"),stringsAsFactors=FALSE)
 		#load(.fpath("hg19chromosomes.rdata"))
 #		data("hg19chromosomes",package="cancerTiming", envir = environment())
@@ -66,12 +82,12 @@ labelSeg<-function(chr,start,end,pctOv=0.10){
 		segGr<-GenomicRanges::GRanges(chr,IRanges::IRanges(start,end))
 		ov<-GenomicRanges::findOverlaps(subject=segGr,query=centGr)
 		#GenomicRanges::subsetByOverlaps(query=segGr,subject=centGr)
-		shits <- segGr[IRanges::to(ov)] #subjectHits=to
-		chits <- centGr[IRanges::from(ov)] #queryHits=from
+		shits <- segGr[S4Vectors::subjectHits(ov)] 
+		chits <- centGr[S4Vectors::queryHits(ov)] 
 		mint <- GenomicRanges::pintersect(shits, chits)
 		spercent <- GenomicRanges::width(mint) / GenomicRanges::width(shits)	
-		df<-data.frame(index=IRanges::from(ov),pct=spercent,val=GenomicRanges::values(centGr)$label[IRanges::from(ov)])
-		lab<-by(df,list(IRanges::to(ov)),
+		df<-data.frame(index=S4Vectors::queryHits(ov),pct=spercent,val=GenomicRanges::values(centGr)$label[S4Vectors::queryHits(ov)])
+		lab<-by(df,list(S4Vectors::subjectHits(ov)),
 			function(x){
 				wh<-which(x$pct>=pctOv)
 				paste(sort(GenomicRanges::values(centGr)$label[x$index[wh]]),collapse="",sep="")
